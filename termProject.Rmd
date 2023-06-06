@@ -1,0 +1,453 @@
+---
+title: "R Term Project: Hotel Booking Analysis"
+author: "Ghosha Shah"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+bibliography: HotelBooking.bib
+---
+
+```{r setup, message=FALSE, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+
+```{r libraries,include=FALSE, message=FALSE}
+#loading all required libraries
+library(effectsize)
+library(datarium) 
+library(rstatix)
+library(tidyverse)
+library(magrittr) #for using %>%  
+library(caret) #for contigency table
+library(ez)
+library(kableExtra)
+
+```
+
+# (1) **\underline{Introduction}**     
+
+## References:    
+
+- I have used following references for describing the background of this analysis.  
+  @saputro2021exploratory  
+  @antonio2019predictive  
+  @tsai2022analysis    
+  @novakovic4hotel  
+  @martin2018hotels  
+  @abrate2016strategic   
+  @saputro2021exploratory   
+  @antonio2017predicting   
+  @chalupa2022understanding   
+  @zheng2017emerging   
+  @vives2018revenue   
+  @lee2018modeling   
+
+## 1.1 Abstract:  
+
+- When visitors spend money in hotels, restaurants, and entertainment venues, hospitality directly contributes to local economies. The hospitality sector is expanding as more and more individuals use their money to travel and engage in leisure activities. Nevertheless, the demand for hotel rooms is not divided evenly throughout the year because people usually check into a hotel during the holidays or a special event. The hotel sector is highly unpredictable, and bookings depend on a wide range of variables, including hotel type, seasonality, day of the week, and many more. To assist the hotels in making better plans, it is now even more important to analyse the patterns present in the historical data. In order to maximize revenue, hotels can run multiple analysis using past data.
+
+- The study seeks to learn details about how visitors behave while making hotel reservations. The hotel management frequently uses a pricing plan, one of which involves increasing the room rate when demand was strong and implementing a promotion when demand was low. As a result, it is crucial for the pricing strategy to be able to predict future demand accurately. Demand for various client segments may vary, making forecasting more complex because various segments require different models. This information can help hotels modify their consumer strategies and prepare for unforeseen circumstances.
+
+- In a hotel, thousands of reservations are made every single month. The hotels have all the data regarding the reservation such as number of people, type of meal selected, arrival date, stay duration, type of room selected, Reservation Status, etc.  
+
+- Therefore, it can be considered that the hotels have almost all the details required to perform data analysis of the Booking System. This implies that using these features, many useful insights can be gained such as Booking time pattern, category of clients in terms of country, age, Market Segment, Distribution Channel, etc. An extremely crucial outcome which can be determined here is which customers had showed up at the arrival or updated date and which ones had cancelled their reservation.     
+
+## 1.2 Literature Review:   
+
+1.2.1   
+Stepan Chalupa and Martin Petricek, in their research paper **Understanding customer's online booking intentions using hotel big data analysis** had performed clustering to identify different types of hotel customers. The research focuses on consumer classification and its implementation towards demand planning. They adopted the Two-Step cluster analysis to determine market segments. The seven variables were used in the analysis (length of stay, average room rate, distribution channel, reservation day, day of arrival, lead time and payment conditions). "Corporates", "Early Bird Bookers", "Last Minute Bookers", "Product Seekers", "Values Seekers", and "Last Minute Bookers" were identified as segments clusters. It was found that most reservations were in cluster six on Tuesday, with the arrival day being Monday.    
+
+Findings of the study:    
+
+"Last Minute Bookers" stay in the hotel for one night With a low average lead time of 9, 27 days before arrival,  "Value Seekers" search the internet for the greatest possible rates and deals. The lower average accommodation rates are mainly the result of expensive and cheap nights (with the MLOS and even NR discounts).   
+"Product Seekers" are seeking for a certain product whose availability is limited, primarily due to recent sales. These clients are willing to pay higher average lodging rates.   
+"Early Bird Bookers" plan their stays and make an effort to enjoy the benefits of the accommodation facility's low demand when they book. A cheaper pricing is associated with advanced booking and non-refundable offers. This segment is likely to have a high cancellation rate.    
+"Long-time Stayers" stay in the hotel for many nights and are subject to MLOS limits and, in most cases, off-season stays in the leisure segment.      
+"Corporates" were identified separately since their behaviour varies during the booking and stay periods. They accept the higher rates in the same time frame as leisure clients.    
+
+1.2.2   
+In the study **Determinants of Customer Satisfaction in the Hotel Industry**, Huiying Li, Qiang Ye and Rob Law conducted a research to to show how internet hotel reviews may be utilised to systematically identify the factors of consumer satisfaction in the hospitality domain that visitors discuss. They investigated 42,866 relevant internet reviews in the Beijing hotel sector to determine important variables of consumer satisfaction that were most apparent in rating hotels. After the characteristics influencing consumer satisfaction were identified, they did accommodation sector comparisons for budget versus luxury hotels. Although the primary objective of this study was to demonstrate how online hotel reviews can be used to identify determinants of traveller satisfaction through content analysis, the lodging segment comparisons were undertaken to provide hotel managers with guidance on how to best improve visitor satisfaction.   
+
+Findings of the study:   
+
+The most major finding of the study was the identification of 15 aspects influencing consumer satisfaction from online reviews, which were then categorised into six categories. The factors of room, transportation convenience, convenience to tourist places, and value for money were at the top of the list in terms of attracting mass customers, while parking, air conditioning, and TV were at the bottom. 
+Customers reserving luxury hotels prioritised the room factor, whereas those booking affordable hotels prioritised the budget.    
+
+1.2.3     
+In a research **Application of online booking data to hotel revenue management** authors provided a model that helps hotels to obtain an optimal room charge and overbooking level for maximizing the expected sales. Firstly, the overbooking concept for online booking systems is explained. Second, they used a discrete choice model to estimate client decision behaviors using online booking data. Third, they investigated the predicted sales maximization problem by merging the estimated choice model with the theoretical overbooking model and numerically solving the optimal overbooking level and room charge. Finally, they demonstrated numerical examples of the best overbooking tactics and room prices based on online booking data from two big luxury hotels in Tokyo's Shinjuku area.   
+
+Findings of the study:  
+
+The results, in particular, suggest concrete levels for the room charge and overbooking. For example, if the over-sale cost per room is large and the cancellation rate is low, the result demonstrates the explicit trade-off between the over-sale cost and the reimbursement for the sales loss by overbooking. In this situation, the model plays a significant role in determining the overbooking amount and the room charge.   
+Furthermore, we explored the gradual shift of the room charges when the hotels repeatedly optimise them in turns in the numerical case of the equilibrium room charges of the two hotels. We have seen that the prices fall to lower levels compared to the original hotel costs and the predicted sales ultimately decrease.    
+
+1.2.4    
+Stepan Chalupa and Martin Petricek had conducted research called **Using Technology and Customer  Behaviour Characteristics to Improve  Hotel Sales Performance**. The employment of this system is closely related to intense data gathering and processing. These systems' ineffective utilization may result in financial loss. In order to assess the sales performance of the chosen luxury hotel, this study connects the requirement for using customer-oriented information systems with the fundamentals of revenue management. In this study, booking time variables (the time interval between the date of booking and check.in) are used to determine customer booking behavior. This study's primary objective was to demonstrate that, in order to enhance their overall performance, hotels should make better use of their existing resources and their outputs. The use of data and the ability to process it are related to both general knowledge and professional expertise.    
+
+Findings of the study:   
+
+The number of reservations dropped down immediately as a result of the price increase. Regarding the timing of their booking decisions, clients' behaviour does not directly differ, there might be another reason behind change in customer behavior. The decline in hotel performance needs to be looked at from a different angle since there is no evidence of a change in consumer behavior. A "top-down" pricing strategy, which is frequently used to reduce demand over the long period prior to arrival, is being used by the hotel revenue manager. When the demand starts to increase specifically, that is, when the biggest demand is being seen, this technique should be adjusted. Two type of customers were classified as below:  
+Individual traveller: These consumers generate roughly 75% of the business and shop seven days on average before their arrival. These customers, as suggested in the literature study, are concerned with getting the best deal, while the hotel should profit from the lack of information. Customers that purchased a product package make up the majority of the second group of clients (the expenses for other services are excluded from the selling price).   
+
+1.2.5   
+In the study **Strategic and tactical price decisions in hotel revenue management**, Graziano Abrate and Giampaolo Viglia studied online price changing in hospitality. The tourism and hospitality sectors have seen tremendous change over the past two decades, increasing the risk for business owners looking to gain an advantage over competitors. In fact, the widespread use of new technology and the intense competition in the business have compelled operators to look for ways to enhance both their long-term goals and their practical solutions. With the introduction of new methods to readily update prices in real time over the internet, one of the major shifts has taken place in the domain of pricing. In the tourist and hospitality industries, 22% of operators have previously employed various types of price intelligence software, increasing their profitability and gross margins by 25% and 10%, respectively.    
+
+Findings of the study:  
+
+The study demonstrates the relationship between strategic and tactical aspects in dynamic pricing, which is based on three categories of variables: tangible, reputational, and contextual. Online consumer reviews, which are more volatile than other types of reputation when compared to traditional forms of reputation, are becoming more and more important in determining prices. There are several managerial consequences. First, the value of tangible features is still significant and can be leveraged to enhance revenue managers' tactical solutions. For instance, a hotel with nearly all of its basic rooms booked many days prior to the check-in date can choose to eliminate the availability of the room, only allowing guests to book premium accommodations during that time. Other comparable sectors that have varying degrees of tangible qualities can use the same method (e.g. seats in business vs. economy class in travel companies). In addition, internet reviews are becoming more significant in the context of reputation.   
+
+## 1.3 Data Description:     
+
+The selected dataset for this project can be found through Kaggle:    *https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand*   
+
+- The given dataset contains almost all the information regarding a particular Hotel Booking having arrival date between the 1st of July of 2015 and the 31st of August 2017. As this is the real data, it can be highly significant for data mining and revenue management.   
+
+- The data consists of around 119,390 booking transactions from 2 hotels: an anonymous city hotel from Lisbon and a resort hotel from Algarve, each having 31 attributes. Every observation represents a single hotel booking.  
+
+- The data mainly comprises of the information such as:  
+
+1. Type of hotel (Hotel/ Resort).  
+4. Number of days between Booking and Arrival.  
+6. Arrival Date including Date, Week Number, Month and Year.  
+5. Country of customers' origin.   
+4. Type of Meal selected.  
+3. Number of Stays in Weekend Nights as well as Week Nights.  
+5. Count of adults, children, and babies in the stay.  
+8. Market Segment as well as Distribution Channel of the guests.  
+7. Is the customer repeated? If yes, how many cancellations or approvals have they accounted for?   
+0. Reserved and Assigned room type.  
+2. Deposit Type.  
+93. Reservation Status (Canceled/ Check-out).  
+
+- Description of all the attributes along with the data type can be explained as follows:
+
+```{r Data Description, warning=FALSE, echo=FALSE}
+#creating data frame of columns "Variable","Type","Description"
+dt2 <- data.frame(
+   Variable = c("Hotel","isCanceled","leadTime","arrivalDateYear","arrivalDateMonth","arrivalDateweekNumber","arrivalDateDayOfMonth","staysInWeekendNights","staysInWeekNights","adults","children","babies","meal","country","marketSegment","distributionChannel","isRepeatedGuest","previousCancellations","previousBookingsNotCanceled","reservedRoomType","assignedRoomType"),
+                 Type = c("Categorical","Categorical","Integer","Integer","Categorical","Integer","Integer","Integer","Integer","Integer","Integer","Integer","Categorical","Categorical","Categorical","Categorical","Categorical","Integer","Integer","Categorical","Categorical"),
+   
+   Description=c("Type of hotel (Hotel/Resort)","Value indicating if the booking was canceled (1) or not (0)","Number of days between the entering date of the booking into the PMS  and the arrival date","Year of arrival date","Month of arrival date (January to December)","Week number of the arrival date","Day of the month of the arrival date","Number of weekend nights (Saturday or Sunday) the guest stayed or booked to stay at the hotel","Number of week nights (Monday to Friday) the guest stayed or booked to stay at the hotel","Number of adults","Number of children","Number of babies","Type of meal booked\nUndefined/SC, \nBB, \nHB , \nFB ",
+" Country of origin","Market segment designation. In categories, the term TA means Travel Agents and TO means TourOperators"," Booking distribution channel. The term TA means Travel Agents and TO means Tour Operators","Value indicating if the booking name was from a repeated guest (1) or not (0)","Number of previous bookings that were cancelled by the customer prior to the current booking","Number of previous bookings not cancelled by the customer prior to the current booking","Code of room type reserved","Code for the type of room assigned to the booking. Sometimes the assigned room type differs from the reserved room type due to hotel operation reasons (e.g. overbooking) or by customer request")
+                 
+)
+dt2 %>%
+   mutate_all(linebreak) %>%
+   knitr::kable("latex", booktabs = T, escape = F,
+      col.names = linebreak(c("Variable", "Type","Description"), align = "c"))%>%column_spec(3:6, width = "5cm")
+
+dt2 <- data.frame(
+   Variable = c("bookingChanges","depositType","agent","company","daysInWaitingList","customerType","requiredCarParkingSpaces","totalOfSpecialRequests","reservationStatus","reservationStatusDate"),
+                 Type = c("Integer","Categorical","Integer","Integer","Integer","Categorical","Integer","Integer","Categorical","Date"),
+   
+   Description=c("Number of changes/amendments made to the booking from the moment the booking was entered on the PMS until the moment of check-in or cancellation","Non Refund – a deposit was made in the value of the total stay cost; \n Refundable – a deposit was made with a value under the total cost of stay.","ID of the travel agency that made the booking"," ID of the company/entity that made the booking or responsible for paying the booking. ID is presented instead of designation for anonymity reasons","Number of days the booking was in the waiting list before it was confirmed to the customer","Type of booking, assuming one of four categories:
+Contract - when the booking has an allotment or other type of contract associated to it; \n
+Group – when the booking is associated to a group;\n
+Transient – when the booking is not part of a group or contract, and is not associated to other transient booking;
+Transient-party – when the booking is transient, but is associated to at least other transient booking","Number of car parking spaces required by the customer","Number of special requests made by the customer","Reservation last status, assuming one of three categories:\n
+Canceled – booking was canceled by the customer; \n
+Check-Out – customer has checked in but already departed; \n
+No-Show – customer did not check-in and did inform the hotel of the reason why","Date at which the last status was set. This variable can be used in conjunction with the ReservationStatus to understand when was the booking canceled or when did the customer checked-out of the hotel")
+                 
+)
+dt2 %>%
+   mutate_all(linebreak) %>%
+   knitr::kable("latex", booktabs = T, escape = F,
+      col.names = linebreak(c("Variable", "Type","Description"), align = "c"))%>%column_spec(3:6, width = "5cm")
+
+
+```
+
+- *Vitalness of the data:*    
+  + Descriptive analysis can be used to understand patterns, trends, and anomalies in data.  
+  + Variety of factors can be predicted such as seasonality, customer satisfaction, type of meal, booking cancellation prediction, categories of clients, etc.   
+  + Researchers in machine learning can utilise the dataset to compare how well various algorithms perform when approaching a particular task (such as classification, segmentation)  
+  + Educators can use the datasets to solve data mining or classification problems using machine learning.    
+- Hereby, I will be using this dataset to predict the following results:  
+
+1. Do adults contribute more to the Number of stays in weekends at the Hotel?
+12. Analysis of Booking Repetition by month of Arrival.
+64. What was the Cancellation rate of Bookings from distinct Market Segments?    
+
+# (2) **\underline{Method}**   
+
+- We will perform Empirical Analysis on the dataset using various mentioned factors to observe whether they affect the booking or cancellation rate of customers.
+- As this is a massive dataset, there are several approaches through which we can perform analysis on the data. Few instances of dataset is shown below:    
+
+```{r import Dataset, echo=FALSE}
+#Importing the dataset of "Hotel Booking Analysis"
+hotel_bookings <- read.csv("C:\\Users\\Owner\\Rinki\\Trent BDA\\sem1\\DataAnalyticsWithR\\Assignment\\Assignment1\\dataset\\hotel\\hotel_bookings.csv")
+#removing null values from dataset for handling missing values
+hotel_bookings <- hotel_bookings %>% discard(is.null)
+head(hotel_bookings)
+#loading required libraries
+library(datarium)
+library(rstatix)
+library(effectsize)
+
+```
+
+**2.1 Method 1**    
+We will find out if there is association between the features "adults" and "stays_in_week_nights". Correlation gives the measure of association between two variables and it ranges from -1 (perfect negative correlation) and 1 (perfect positive correlation).    
+
+**Null Hypothesis** : There is no association between number of adults and total stays in week nights.   
+**Alternatove Hypothesis** : There is a significant association between number of adults and total stays in week nights.     
+
+We have performed correlation test using Pearson's method.  
+
+```{r}
+# correlation between number of weekend stays and number of adults  
+hotel_bookings$stays_in_week_nights <- as.numeric(as.character(hotel_bookings$stays_in_week_nights))
+hotel_bookings$adults <- as.numeric(as.character(hotel_bookings$adults))
+result1 <- cor.test(hotel_bookings$stays_in_weekend_nights,hotel_bookings$adults,method = "pearson")
+
+```
+
+**2.2 Method 2**    
+One way ANOVA test to determine if the month of Arrival affects the repetition of guests.   
+
+```{r}
+#one way anova between independent variable arrival_date_month and dependent variable is_repeated_guest
+Ind.ANOVA2 <- aov(is_repeated_guest ~ arrival_date_month, hotel_bookings)
+result2 <- Anova(Ind.ANOVA2, type = "III")
+```
+
+ANOVA, which stands for Analysis of Variance, is a parametric test used to analyze the mean value of samples to check whether they are significantly different. In addition. this test uses only one independent variable. This test compares means of groups (usually 3 to 4) to analyze the variance.  
+
+We will perform one-way ANOVA test between is_repeated_guest and arrival_date_month variable to find out if guests are repeated in different proportions during distinct Arrival months.   
+
+Null Hypothesis: There is no difference in guest repetition for all Arrival months.      
+Alternate Hypothesis: There is a significant difference in guest repetition for all Arrival months.      
+
+After conducting the test, Post hoc test was performed to find differences between the groups.   
+
+Moreover, following assumptions for one way ANOVA test were checked:    
+
+1. Normality: Residuals should form normally distributed data.   
+A histogram is plotted for residuals in order to check normality.    
+
+2. Independence of data: It is difficult to check independence of data. Most of the times, observations are taken randomly and are not related to each other. Therefore, ANOVA assumes that the observations are independent of each other.   
+
+3. Homogeneity of variance : Equal variance between independent groups.    
+Levene Test of Variance was performed for checking this assumption.   
+
+From all these steps, it can be discovered whether Arrival month affects repetition of guests.   
+
+**2.3 Method 3**      
+One way ANOVA test to determine if the Market Segment of customers affects the cancellation rate.      
+
+ANOVA, which stands for Analysis of Variance, is a parametric test used to analyze the mean value of samples to check whether they are significantly different. In addition. this test uses only one independent variable. This test compares means of groups (usually 3 to 4) to analyze the variance.  
+
+We will perform one-way ANOVA test between is_canceled and market_segment variable to find out if guests of one particular category of market_segment has significantly accounted for more cancellations than other categories.   
+
+Null Hypothesis: There is no difference in cancellation rate of all the Market Segments.       
+Alternate Hypothesis: There is a difference in cancellation rate of all the Market Segments.     
+
+```{r ANOVA test}
+Ind.ANOVA3 <- aov(is_canceled ~ market_segment, hotel_bookings)
+result3 <- Anova(Ind.ANOVA3, type = "III")
+```
+After conducting the test, Post hoc test was performed to find differences between the groups.   
+
+Moreover, following assumptions for one way ANOVA test were checked:    
+
+1. Normality: Residuals should form normally distributed data.   
+A histogram is plotted for residuals in order to check normality.    
+
+2. Independence of data: It is difficult to check independence of data. Most of the times, observations are taken randomly and are not related to each other. Therefore, ANOVA assumes that the observations are independent of each other.   
+
+3. Homogeneity of variance : Equal variance between independent groups.    
+Levene Test of Variance was performed for checking this assumption.   
+
+From all these steps, it can be discovered whether Market Segment of the clients affects cancellation rate.    
+
+# (3) **\underline{Results}**      
+
+**3.1 Result 1**    
+
+The correlation function is implemented to find the correlation between Number of stays in weekend and Number of adults.     
+
+```{r echo=FALSE}
+result1
+```
+
+Results of the Correlation Test are as follows:    
+T = 31.879, degree of freedom (df) = 119388, $p-value < 2.2e-16 < 0.05$.
+The value of correlation is obtained which is equal to 0.0919.     
+
+**3.2 Result 2**
+
+Results of one way ANOVA between is_repeated_guest and arrival_date_month were as under:  
+
+```{r echo=FALSE}
+result2
+```
+
+Post hoc test was performed to determine the difference between groups. The results of this test are shown here.   
+
+```{r post hoc analysis for Repetition rate, echo=FALSE}
+#post-hoc one-way ANOVA analysis
+TukeyHSD(Ind.ANOVA2)
+```
+
+*Assumptions:*   
+
+Histogram of residuals can be shown as below:  
+```{r echo=FALSE}
+#Plotting histogram of residuals to check whether the residuals are normally distributed or not.
+library(ggplot2)
+ggplot(Ind.ANOVA2, aes(Ind.ANOVA2$residuals)) +
+geom_histogram(fill = "green", color = "black", binwidth = 0.5) +
+xlab("Residuals") +
+ylab("Count") +
+theme(panel.border = element_rect(fill = NA),
+panel.background = element_rect(fill = NA)) +
+ggtitle("Residuals")
+```
+
+On performing Levene Test for Variance, we got results as:  
+
+```{r echo=FALSE}
+#Using Levene’s test to check for homogeneity of variance
+levene_test(hotel_bookings, is_repeated_guest ~ arrival_date_month)
+```
+
+**3.3 Result 3**
+
+Results of one way ANOVA between is_canceled and market_segment were as under:  
+
+```{r echo=FALSE}
+result3
+```
+
+Post hoc test was performed to determine the difference between groups. The results of this test are shown here.   
+
+```{r post hoc analysis for cancellation, echo=FALSE}
+#post-hoc one-way ANOVA analysis
+TukeyHSD(Ind.ANOVA3)
+```  
+
+*Assumptions:*   
+
+Histogram of residuals can be shown as below:  
+```{r echo=FALSE}
+#Plotting histogram of residuals to check whether the residuals are normally distributed or not.
+library(ggplot2)
+ggplot(Ind.ANOVA3, aes(Ind.ANOVA3$residuals)) +
+geom_histogram(fill = "green", color = "black", binwidth = 1) +
+xlab("Residuals") +
+ylab("Count") +
+theme(panel.border = element_rect(fill = NA),
+panel.background = element_rect(fill = NA)) +
+ggtitle("Residuals")
+```
+
+On performing Levene Test for Variance, we got results as:  
+
+```{r echo=FALSE}
+#Using Levene’s test to check for homogeneity of variance
+levene_test(hotel_bookings, is_canceled ~ market_segment)
+```
+
+# (4) **\underline{Discussion}**     
+
+In order to move towards the problem's solution, I have performed certain analysis between different factors.   
+
+**4.1 Discussion 1**     
+Correlation test was conducted on Number of weekend stays and number of adults in order to find out if there was any correlation present between these two factors.   
+
+The output of test was “cor = 0.0919”, which illustrated that the correlation between Number of weekend stays and Number of adults is 0.0919. As per Cohen(1992) in (Marshal et al), if the value of
+cor $< 0.1$ ,then that correlation is considered to be negligible correlation. Hence, there is a negligible correlation between the Number of weekend stays and Number of adults.   
+
+A scatter plot between adults and stays_in_weekend_nights is shown.   
+
+```{r echo=FALSE}
+ggplot(hotel_bookings, aes(x=adults, y=stays_in_weekend_nights)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+```
+
+A scatter plot between stays_in_weekend_stays and adults is shown.   
+
+```{r echo=FALSE}
+ggplot(hotel_bookings, aes(x=stays_in_weekend_nights, y=adults)) + 
+  geom_point()+
+  geom_smooth(method=lm)
+```
+
+Thus, from these scatter plots also, it is apparent that there is no linear correlation between the variables stays_in_weekend_nights and adults.   
+
+**4.2 Discussion 2**     
+4.2.1     
+One way ANOVA test was performed between is_repeated_guest and arrival_date_month.   
+
+Here, is_repeated is a numerical variable having 2 values. Whereas, arrival_date_month is a categorical variable having 12 values. There was a statistically significant difference between groups as determined by one-way ANOVA. Hence, Post hoc comparisons using the Tukey test were carried out.  
+
+There was a significant difference between the Repetition of travelers from following Arrival Months:   
+January-April, February-August, January-August, July-January, June-January and few more.   
+
+Thus,these results prove that Arrival Month of a client affects the repetition rate.     
+
+4.2.2        
+To view number of Booking Repetitions in regard to Arrival Month, we will visualize a Bar Chart here. The chart shows proportion of Repetitions in each Month.   
+
+```{r Repetition rate by Arrival Month, echo=FALSE}
+#extracting data where guests were repeated
+hotel_repeated_guest <-subset(hotel_bookings, is_repeated_guest!=0)
+
+#plotting a bar graph
+ggplot(data=hotel_repeated_guest, aes(x=arrival_date_month, y=is_repeated_guest))+
+  labs(x="Arrival Month",y="Repetition Rate") +
+  geom_bar(stat="identity",fill="lightblue")+
+  theme_dark()
+```
+From the Bar Chart, it can be stated that the highest number of Repetitions were seen for month of March followed by February and January. Next, month of May had some repeated visitors. Repeated guests were rarely observed in August and September. Rest other months had almost similar proportion of repetitions.          
+
+**4.3 Discussion 3**     
+4.3.1            
+One way ANOVA test was performed between is_canceled and market_segment.      
+
+Here, is_repeated is a numerical variable having 2 values. Whereas, market_segment is a categorical variable having 7 values. There was a statistically significant difference between groups as determined by one-way ANOVA. Hence, Post hoc comparisons using the Tukey test were carried out.   
+
+There was a significant difference between the cancellation of visitors from following Market Segments:    Groups-Aviation (0.3912),Groups-Complementary (0.4800), Groups-Corporate (0.4233), Groups-Direct (0.4572), Offline TA/TO-Complementary (0.2126), Online TA-Complementary (0.2367) and few more.  
+
+Thus,these results prove that Market Segment of a client affects the cancellation rate.   
+
+4.3.2                   
+A Grouped Bar Chart will be employed for this purpose. Counts of Cancellations by Market Segment is shown.  Note:    
+is_canceled = 1 : Canceled    
+is_canceled = 0 : Not canceled       
+
+```{r Cancellation rate by Market Segment, echo=FALSE}
+#comparing different market segments based on cancellation rate
+
+mindate <- min(hotel_bookings$arrival_date_year)
+maxdate <- max(hotel_bookings$arrival_date_year)
+
+ggplot(data = hotel_bookings) +
+  geom_bar(mapping = aes(x = market_segment, fill=market_segment)) +
+  facet_wrap(~is_canceled)+
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(title='Hotel Cancellations Based on Market Segment', caption=paste0("Data from: ", mindate, " to ", maxdate),
+  x='Market Segment',y='Booking Cancellations')
+
+ggsave('hotel_booking_chart.png',
+       width=15,
+       height=10)
+```
+
+The bar graph depicts that most cancellations were from Online Travel Agents as opposed to that of Aviation. Next, Groups accounted for the second highest number of cancellations.  
+
+Furthermore, Offline Travel Agents made midway number of cancellations followed by Direct and Corporate Market Segment.   
+
+Finally, customers of both Complementary and Aviation were least likely to cancel a booking.   
+
+## **\underline{Future Implications}**     
+
+- The goal is of this project is to increase the revenue of the hotels using the insights describing maximum number of Bookings and Cancellations in a particular given condition. We can use several factors to identify maximum number of customers in terms of Arrival Date, Stays in Weekend and Weekdays, Age, Type of Meal, Market Segment, Distribution Channel, Reservation Status. 
+- Our main objective was to analyze bookings of the two hotels namely, an anonymous city hotel from Lisbon and a resort hotel from Algarve. Data for Arrival Date between 1st of July of 2015 and the 31st of August 2017 were selected for the analysis.  In future, dataset for more hotels and/or duration can be taken.
+- We have used the following features for gaining our insights:    
+Arrival Date, Age, Stays in Weekends and Week days, Repetition, Cancellation, Market Segment, Reservation Status.  
+ - We have not taken these features into account for our analysis in this project, which can be considered in the future:   
+Assigned and reserved room type, Meal, Country, Agent, Distribution Channel, Company, Required car parking slots, Total special requests.    
